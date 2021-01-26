@@ -1,6 +1,6 @@
 import pandas as pd
 from processing import to_shingles
-from utils import compute_jaccard, pairwise_jaccard
+from jaccard import compute_jaccard
 import random
 from multiprocessing import Pool
 from usersettings import usersettings
