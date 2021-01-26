@@ -23,9 +23,9 @@ if __name__ == "__main__":
     #     p.map(pairwise_jaccard_partial, article_list)
     for key1, value1 in articles.items():
         for key2, value2 in articles.items():
-            if key1 != key2:
+            if key1 < key2:
                 jaccard_sim = compute_jaccard(value1, value2)
-                buckets[jaccard_sim // 0.1 * 0.1] += 1
+                buckets[min(jaccard_sim // 0.1 * 0.1, 0.9)] += 1
     lists = buckets.items()
     x, y = zip(*lists)
     # y = [math.log(value) if value != 0 else 0 for value in y]
