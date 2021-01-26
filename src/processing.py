@@ -1,6 +1,6 @@
 import pandas as pd
 
-
+# turns a document into a set of hashed shingles
 def to_shingles(doc, k=3):
     shingles = set()
     doc = doc.split()
