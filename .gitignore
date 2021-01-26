@@ -128,3 +128,6 @@ dmypy.json
 .vscode
 .idea
 .vs
+
+# usersettings
+/src/usersettings.py
