@@ -1,7 +1,7 @@
 from hashlib import md5
 from collections import defaultdict
 import pandas as pd
-from signature import generate_signature_matrix, shingles_to_signature, Linconhash
+from signature import generate_signature_matrix, shingles_to_signature, Linconhash, load_hash
 from processing import to_shingles
 from jaccard import compute_jaccard
 import json
@@ -12,6 +12,7 @@ class LSH():
         self.index = None
         self.n = None
         self.r = None
+        self.hashfunctions = None
         if filename:
             self.load_index(filename)
 
@@ -22,10 +23,17 @@ class LSH():
             self.r = index_dict['r']
             self.index = index_dict['index']
             self.docs = [set(doc) for doc in index_dict['docs']]
+            self.hashfunctions = [load_hash(hashfunc) for hashfunc in index_dict['hashfunctions']]
 
     def store_index(self, filename):
         with open('./data/%s' % filename, 'w') as output:
-            index_dict = {'n': self.n, 'r': self.r, 'index': self.index, 'docs': [list(doc) for doc in self.docs]}
+            index_dict = {
+                'n': self.n,
+                'r': self.r,
+                'index': self.index,
+                'docs': [list(doc) for doc in self.docs],
+                'hashfunctions': [hashfunc.store() for hashfunc in self.hashfunctions]
+            }
             json.dump(index_dict, output)
 
     def create_index(self, filename, n, r):
@@ -35,7 +43,7 @@ class LSH():
         self.docs = doclist
         print(len(doclist), "docs")
 
-        siglist = generate_signature_matrix(doclist, n)
+        siglist, self.hashfunctions = generate_signature_matrix(doclist, n)
         self.r = r
         self.n = n
         self.index = self.index_gen(siglist)
@@ -46,9 +54,9 @@ class LSH():
             print('An index must be created/loaded before querying.')
             return results
         shingles = to_shingles(query)
-        signature = shingles_to_signature(shingles, [Linconhash() for _ in range(self.n)])
+        signature = shingles_to_signature(shingles, self.hashfunctions)
         candidates = {candidate for i in range(0, len(signature), self.r) for candidate in self.index[self.hash_band(signature, i)]}
-        for candidate in candidates:
+        for candidate in candidates:  # TODO pool gebruiken als er veel candidates zijn?
             if compute_jaccard(shingles, self.docs[candidate]) > sim:
                 results.append(candidate)
         return results
