@@ -86,7 +86,7 @@ class LSH():
     def hash_band(self, sig, i):
         m = md5()
         for value in tuple(sig[i:i+self.r]):
-            m.update(value.to_bytes(8, 'big', signed=True))
+            m.update(value.to_bytes(8, 'big', signed=False))
         return m.hexdigest()
 
     def index_gen(self, siglist):

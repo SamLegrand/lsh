@@ -48,10 +48,10 @@ def load_hash(s):
 class Xorhash(Basehash):
     def __init__(self):
         Basehash.__init__(self)
-        self.xor = random.randint(0, 2**63)
+        self.xor = random.randint(0, 2**64)
 
     def calculate(self, value):
-        return abs(value) ^ self.xor
+        return value ^ self.xor
 
     def store(self):
         return "Xorhash_"+str(self.xor)
@@ -111,7 +111,7 @@ def signature_similarity(sig1, sig2):
 
 
 def example_simple():
-    docs = [{1, 2, 3, 4}, {1, 2, 3, 5}, {4, 8, 9, 10}]
+    docs = [{1, 2, 3}, {3, 4, 5}, {6}]
 
     siglist, hashfunctions = generate_signature_matrix(docs, 10000)  # large signatures of 10000 values
 
