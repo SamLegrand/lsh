@@ -63,7 +63,7 @@ def generate_signature_matrix(docs, n):
     with Pool(usersettings["threads"]) as p:
         out = p.map(partialfunc, docs)
 
-    return out
+    return out, hashfunctions
 
 
 def signature_similarity(sig1, sig2):
@@ -103,7 +103,7 @@ if __name__ == "__main__":
     doclist = list(articles.values())
     print(len(doclist), "docs")
 
-    siglist = generate_signature_matrix(doclist, 100)
+    siglist, hashfuncs = generate_signature_matrix(doclist, 100)
 
     # generate same similarity graph as in sim_analysis.py but using the signatures
     # this isn't faster but just to show that it does work and the similarity using the signatures
