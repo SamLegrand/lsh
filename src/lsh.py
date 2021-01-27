@@ -108,8 +108,9 @@ class LSH():
         #    keep the pairs that are actually similar
         results = set()
         for pair in candidates:
-            if compute_jaccard(self.docs[pair[0]], self.docs[pair[1]]) > treshold:
-                results.add(pair)
+            sim = compute_jaccard(self.docs[pair[0]], self.docs[pair[1]])
+            if sim > treshold:
+                results.add((pair, sim))
 
         print("Found", len(results), "near-duplicate pairs")
 
