@@ -36,14 +36,16 @@ def longcrc(shingle):
 
 
 # turns a document into a set of hashed shingles
-def to_shingles(doc, k=3):
+def to_shingles(doc, k=3, filter_punctuation=False, filter_stopwords=False, remove_capitalization=False, stopword_start=False):
+    assert (not filter_stopwords and stopword_start)
     shingles = set()
-    # doc = pre_processing(doc, punctuation=True, stopwords=True, capitalization=True)
+    doc = pre_processing(doc, punctuation=filter_punctuation,
+                         stopwords=filter_stopwords, capitalization=remove_capitalization)
     doc = doc.split()
     for i in range(0, len(doc)-k+1):
         # shingles.add(hash(tuple(doc[i:i+k])))
-        # if doc[i] in STOPWORDS:
-        shingles.add(longcrc(doc[i:i+k]))
+        if not stopword_start or doc[i] in STOPWORDS:
+            shingles.add(longcrc(doc[i:i+k]))
     return shingles
 
 
