@@ -37,7 +37,7 @@ def longcrc(shingle):
 
 # turns a document into a set of hashed shingles
 def to_shingles(doc, k=3, filter_punctuation=False, filter_stopwords=False, remove_capitalization=False, stopword_start=False):
-    assert (not filter_stopwords and stopword_start)
+    assert (not (filter_stopwords and stopword_start))
     shingles = set()
     doc = pre_processing(doc, punctuation=filter_punctuation,
                          stopwords=filter_stopwords, capitalization=remove_capitalization)
