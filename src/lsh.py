@@ -51,6 +51,13 @@ class LSH():
         self.n = n
         self.index = self.index_gen(siglist)
 
+    # compute (s1, p1, s2, p)-sensitivity of the index, given s1 and s2
+    def compute_sensitivity(self, s1, s2):
+        if self.index is None:
+            print('An index must be created/loaded before computing sensitivity.')
+            return None
+        return pow(1-pow(s1, self.r), self.n//self.r), 1-pow(1-pow(s2, self.r), self.n//self.r)
+
     def query(self, query, sim):
         results = []
         if self.index is None:
@@ -123,6 +130,10 @@ if __name__ == "__main__":
     t = time.time()
     lsh.create_index('news_articles_large.csv', 100, 5)
     print("Creating index took", time.time() - t, "sec")
+    s1 = 0.3
+    s2 = 0.8
+    p1, p2 = lsh.compute_sensitivity(s1, s2)
+    print("The index is (%s, %s, %s, %s)-sensitive" % (s1, p1, s2, p2))
 
     t = time.time()
     lsh.store_index('index_5.json')
