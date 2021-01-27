@@ -55,10 +55,20 @@ class LSH():
             return results
         shingles = to_shingles(query)
         signature = shingles_to_signature(shingles, self.hashfunctions)
-        candidates = {candidate for i in range(0, len(signature), self.r) for candidate in self.index[self.hash_band(signature, i)]}
-        for candidate in candidates:  # TODO pool gebruiken als er veel candidates zijn?
+        #candidates = {candidate for i in range(0, len(signature), self.r) for candidate in self.index[self.hash_band(signature, i)]}
+
+        # candidates = union of candidates per band
+        candidates = set()
+        for i in range(0, len(signature) // self.r):
+            # find candidates for this band
+            h = self.hash_band(signature, self.r * i)
+            for band_candidate in self.index[i][h]:
+                candidates.add(band_candidate)
+
+        for candidate in candidates:
             if compute_jaccard(shingles, self.docs[candidate]) > sim:
                 results.append(candidate)
+
         return results
 
     def hash_band(self, sig, i):
@@ -68,11 +78,11 @@ class LSH():
         return m.hexdigest()
 
     def index_gen(self, siglist):
-        index = defaultdict(list)
+        index = [defaultdict(list) for _ in range(self.n // self.r)]
         doc_id = 0
         for doc in siglist:
             for i in range(0, len(doc), self.r):
-                index[self.hash_band(doc, i)].append(doc_id)
+                index[i // self.r][self.hash_band(doc, i)].append(doc_id)
             doc_id += 1
         return index
 
