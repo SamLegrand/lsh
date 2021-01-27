@@ -38,9 +38,11 @@ def longcrc(shingle):
 # turns a document into a set of hashed shingles
 def to_shingles(doc, k=3):
     shingles = set()
+    # doc = pre_processing(doc, punctuation=True, stopwords=True, capitalization=True)
     doc = doc.split()
     for i in range(0, len(doc)-k+1):
         # shingles.add(hash(tuple(doc[i:i+k])))
+        # if doc[i] in STOPWORDS:
         shingles.add(longcrc(doc[i:i+k]))
     return shingles
 
