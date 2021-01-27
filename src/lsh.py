@@ -63,6 +63,8 @@ class LSH():
         for i in range(0, len(signature) // self.r):
             # find candidates for this band
             h = self.hash_band(signature, self.r * i)
+            if h not in self.index[i].keys():
+                return results
             for band_candidate in self.index[i][h]:
                 candidates.add(band_candidate)
 
