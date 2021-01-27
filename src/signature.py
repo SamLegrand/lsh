@@ -11,7 +11,7 @@ import matplotlib.pyplot as plt
 # Base class for hash functions, just has a calculate(value) method to be overridden
 class Basehash:
     def __init__(self):
-        pass
+        random.seed(0)
 
     def calculate(self, value):
         raise NotImplementedError
@@ -63,7 +63,7 @@ def generate_signature_matrix(docs, n):
     with Pool(usersettings["threads"]) as p:
         out = p.map(partialfunc, docs)
 
-    return out, hashfunctions
+    return out
 
 
 def signature_similarity(sig1, sig2):
@@ -103,7 +103,7 @@ if __name__ == "__main__":
     doclist = list(articles.values())
     print(len(doclist), "docs")
 
-    siglist, hashfuncs = generate_signature_matrix(doclist, 100)
+    siglist = generate_signature_matrix(doclist, 100)
 
     # generate same similarity graph as in sim_analysis.py but using the signatures
     # this isn't faster but just to show that it does work and the similarity using the signatures
