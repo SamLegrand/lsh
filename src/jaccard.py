@@ -1,11 +1,11 @@
 
-# Computes Jaccard similarity based on two documents represented as sets of shingles
+# computes Jaccard similarity based on two documents represented as sets of shingles
 def compute_jaccard(doc1, doc2):
     intersection = doc1.intersection(doc2)
     union = doc1.union(doc2)
     return len(intersection)/len(union)
 
-# Computes Jaccard similarity between each document pair
+# computes Jaccard similarity between each document pair
 def pairwise_jaccard(docs, buckets):
     for key1, value1 in docs.items():
         for key2, value2 in docs.items():
