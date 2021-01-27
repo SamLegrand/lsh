@@ -44,14 +44,14 @@ def load_hash(s):
     assert False
 
 
-# Xorhash: returns the input number xored with a randomly chosen integer
+# Xorhash: returns the input number xored with a randomly chosen integer: almost 2x as fast as Linconhash
 class Xorhash(Basehash):
     def __init__(self):
         Basehash.__init__(self)
-        self.xor = random.randint(0, 2**64)
+        self.xor = random.randint(0, 2**63)
 
     def calculate(self, value):
-        return value ^ self.xor
+        return abs(value) ^ self.xor
 
     def store(self):
         return "Xorhash_"+str(self.xor)
@@ -63,7 +63,7 @@ class Linconhash(Basehash):
         Basehash.__init__(self)
         self.a = random.randint(2**32, 2**64) # shouldn't be too small
         self.b = random.randint(0, 2**64)
-        self.c = 40420574619972389053  # random large prime
+        self.c = 533603009383305529  # random large prime
 
     def calculate(self, value):
         return (self.a*value + self.b) % self.c
@@ -88,7 +88,7 @@ def generate_signature_matrix(docs, n):
     assert type(docs) == list
 
     # generate n new hash functions
-    hashfunctions = [Linconhash() for _ in range(n)]
+    hashfunctions = [Xorhash() for _ in range(n)]
 
     # calculate signatures for each document
     partialfunc = functools.partial(shingles_to_signature, hashfunctions=hashfunctions)
