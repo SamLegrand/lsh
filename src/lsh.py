@@ -111,11 +111,10 @@ class LSH():
         candidates = set()
         for i in range(0, self.n // self.r):
             for bucket in self.index[i].values():
-                bucketlist = list(bucket)
-                for j in range(len(bucketlist)):
-                    for k in range(len(bucketlist)):
-                        if bucketlist[j] < bucketlist[k]:
-                            candidates.add((bucketlist[j], bucketlist[k]))
+                for j in bucket:
+                    for k in bucket:
+                        if j < k:
+                            candidates.add((j, k))
 
         print("Found", len(candidates), "candidate pairs")
 
