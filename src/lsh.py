@@ -1,11 +1,16 @@
-from hashlib import md5
-from collections import defaultdict
-import pandas as pd
-from signature import generate_signature_matrix, shingles_to_signature, Linconhash, load_hash
-from processing import to_shingles
-from jaccard import compute_jaccard
 import json
 import time
+from collections import defaultdict
+from functools import partial
+from hashlib import md5
+
+import pandas as pd
+
+from jaccard import compute_jaccard
+from processing import to_shingles
+from signature import (Linconhash, generate_signature_matrix, load_hash,
+                       shingles_to_signature)
+
 
 class LSH():
     def __init__(self, filename=None) -> None:
@@ -14,6 +19,8 @@ class LSH():
         self.n = None
         self.r = None
         self.hashfunctions = None
+        self._filter = partial(to_shingles, stopword_start=True,
+                               filter_punctuation=True, remove_capitalization=True)
         if filename:
             self.load_index(filename)
 
@@ -24,7 +31,8 @@ class LSH():
             self.r = index_dict['r']
             self.index = index_dict['index']
             self.docs = [set(doc) for doc in index_dict['docs']]
-            self.hashfunctions = [load_hash(hashfunc) for hashfunc in index_dict['hashfunctions']]
+            self.hashfunctions = [load_hash(hashfunc)
+                                  for hashfunc in index_dict['hashfunctions']]
 
     def store_index(self, filename):
         with open('./data/%s' % filename, 'w') as output:
@@ -41,7 +49,7 @@ class LSH():
     def create_index(self, filename, n, r):
         assert n % r == 0
         articles = pd.read_csv('./data/%s' % filename)
-        articles['article'] = articles['article'].apply(to_shingles)
+        articles['article'] = articles['article'].apply(self._filter)
         doclist = articles.set_index('News_ID')['article'].to_list()
         self.docs = doclist
         print(len(doclist), "docs")
@@ -63,7 +71,7 @@ class LSH():
         if self.index is None:
             print('An index must be created/loaded before querying.')
             return results
-        shingles = to_shingles(query)
+        shingles = self._filter(query)
         signature = shingles_to_signature(shingles, self.hashfunctions)
         #candidates = {candidate for i in range(0, len(signature), self.r) for candidate in self.index[self.hash_band(signature, i)]}
 
