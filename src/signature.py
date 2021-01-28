@@ -57,7 +57,9 @@ class Xorhash(Basehash):
         return "Xorhash_"+str(self.xor)
 
 
-# Linear congruential generator-ish: (a*x + b) % c for a random a, b. c is chosen as a large prime of around 65 bits
+# Linear congruential generator-ish: (a*x + b) % c for a random a, b.
+# c is chosen as a large prime of around 59 bits: this ensures that the hash value fits in 64 bits
+
 class Linconhash(Basehash):
     def __init__(self):
         Basehash.__init__(self)
