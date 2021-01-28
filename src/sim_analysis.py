@@ -30,20 +30,26 @@ def plot_jaccard_distribution(docs, suffix, plot_sensitivity=False):
                     textcoords="offset points",
                     ha='center', va='bottom')
     plt.yscale("log")
+    plt.ylabel('Number of document pairs')
+    plt.xlabel('Similarity between pairs')
 
     if plot_sensitivity:
         _s = [i/1000 for i in range(0, 1000, 1)]
+        colors = ['c', 'm', 'y', 'g']
         axes2 = plt.twinx()
         for M in [20, 50, 100]:
-            for r in [2, 5, 10]:
+            color = 0
+            for r in [2, 4, 5, 10]:
                 plt.xticks(x_pos, x)
                 _y = [compute_sensitivity(s, M, r) for s in _s]
-                axes2.plot([s*10 for s in _s], _y, color='c', label='Sensitivity')
+                axes2.plot([s*10 for s in _s], _y, color=colors[color], label='r = %s' % (r))
                 axes2.set_ylim(0, 1)
                 # axes2.set_xlim(0, 1)
-                axes2.set_ylabel('Sensitivity')
-                plt.savefig('./plots/s_curve_%s_%s' % (M, r))
-                axes2.clear()
+                axes2.set_ylabel('Probability of sharing a bucket')
+                axes2.legend()
+                color += 1
+            plt.savefig('./plots/s_curve_%s' % (M))
+            axes2.clear()
 
     plt.xticks(x_pos, x)
     plt.savefig('./plots/sim_dist_%s.png' % (suffix))
