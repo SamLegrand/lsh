@@ -121,12 +121,20 @@ class LSH():
         # 2) calculate the Jaccard index on the shingles of these documents and only
         #    keep the pairs that are actually similar
         results = set()
+        doc_ids1 = []
+        doc_ids2 = []
         for pair in candidates:
             sim = compute_jaccard(self.docs[pair[0]], self.docs[pair[1]])
             if sim > treshold:
+                doc_ids1.append(pair[0])
+                doc_ids2.append(pair[1])
                 results.add((pair, sim))
 
         print("Found", len(results), "near-duplicate pairs")
+
+        # write similar pairs to output csv
+        results_csv = pd.DataFrame({'doc_id1': doc_ids1, 'doc_id2': doc_ids2})
+        results_csv.to_csv('result.csv', index=False)
 
         return results
 
