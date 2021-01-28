@@ -6,10 +6,12 @@ def compute_jaccard(doc1, doc2):
     return len(intersection)/len(union)
 
 # computes Jaccard similarity between each document pair
-def pairwise_jaccard(docs, buckets):
+def pairwise_jaccard(docs, buckets, _print=False):
     for key1, value1 in docs.items():
         for key2, value2 in docs.items():
             if key1 < key2:
                 jaccard_sim = compute_jaccard(value1, value2)
                 # increase bucket count for range in which computed similarity falls
                 buckets[min(jaccard_sim // 0.1 * 0.1, 0.9)] += 1
+                if _print and jaccard_sim > 0.8:
+                    print('Pair has similarity higher than 0.8: (%s, %s)' % (key1, key2))
