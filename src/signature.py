@@ -6,7 +6,7 @@ from multiprocessing import Pool
 from usersettings import usersettings
 import functools
 import matplotlib.pyplot as plt
-
+from hashlib import md5
 
 # Base class for hash functions, just has methods to be overridden
 class Basehash:
@@ -41,6 +41,11 @@ def load_hash(s):
         obj.c = int(split[3])
         return obj
 
+    if hashtype == "MD5hash":
+        obj = MD5hash()
+        obj.a = int(split[1])
+        return obj
+
     assert False
 
 
@@ -59,7 +64,6 @@ class Xorhash(Basehash):
 
 # Linear congruential generator-ish: (a*x + b) % c for a random a, b.
 # c is chosen as a large prime of around 59 bits: this ensures that the hash value fits in 64 bits
-
 class Linconhash(Basehash):
     def __init__(self):
         Basehash.__init__(self)
@@ -74,6 +78,21 @@ class Linconhash(Basehash):
         return "Linconhash_"+str(self.a)+"_"+str(self.b)+"_"+str(self.c)
 
 
+class MD5hash(Basehash):
+    def __init__(self):
+        Basehash.__init__(self)
+        self.a = random.randint(0, 2**64)
+
+    def calculate(self, value):
+        m = md5()
+        m.update(value.to_bytes(8, 'big', signed=False))
+        m.update(self.a.to_bytes(8, 'big', signed=False))
+        return int(m.hexdigest()[0:16], 16)
+
+    def store(self):
+        return "MD5hash_"+str(self.a)
+
+
 # takes a set of shingles and a list of k hash functions, returns a signature of length k
 # using minhash
 def shingles_to_signature(shingleset, hashfunctions):
@@ -86,11 +105,21 @@ def shingles_to_signature(shingleset, hashfunctions):
 
 # given a list of shinglesets, returns a new list of signatures + the hash functions
 # parameter n determines the amount of hashes being used -> the size of the signatures
-def generate_signature_matrix(docs, n):
+# parameter hashfunc is a string that should either be "Xorhash" or "Linconhash"
+def generate_signature_matrix(docs, n, hashfunc):
     assert type(docs) == list
 
+    hashfunc_map = {
+        "Xorhash": Xorhash,
+        "Linconhash": Linconhash,
+        "MD5hash": MD5hash
+    }
+
+    assert hashfunc in hashfunc_map.keys()
+    hashfunc = hashfunc_map[hashfunc]
+
     # generate n new hash functions
-    hashfunctions = [Xorhash() for _ in range(n)]
+    hashfunctions = [hashfunc() for _ in range(n)]
 
     # calculate signatures for each document
     partialfunc = functools.partial(shingles_to_signature, hashfunctions=hashfunctions)
@@ -100,6 +129,7 @@ def generate_signature_matrix(docs, n):
     return out, hashfunctions
 
 
+# calculates the similarity of two signatures by counting in how many positions they are equal
 def signature_similarity(sig1, sig2):
     assert type(sig1) == list
     assert type(sig2) == list
@@ -115,7 +145,7 @@ def signature_similarity(sig1, sig2):
 def example_simple():
     docs = [{1, 2, 3}, {3, 4, 5}, {6}]
 
-    siglist, hashfunctions = generate_signature_matrix(docs, 10000)  # large signatures of 10000 values
+    siglist, hashfunctions = generate_signature_matrix(docs, 10000, "MD5hash")  # large signatures of 10000 values
 
     print("Jaccard:")
     print("jac(0, 1):", compute_jaccard(docs[0], docs[1]))
@@ -127,37 +157,6 @@ def example_simple():
     print("sim(0, 1):", signature_similarity(siglist[0], siglist[1]))
     print("sim(1, 2):", signature_similarity(siglist[2], siglist[1]))
     print("sim(0, 2):", signature_similarity(siglist[0], siglist[2]))
-
-
-def example_graph():
-    articles = pd.read_csv('./data/news_articles_small.csv')
-    articles['article'] = articles['article'].apply(to_shingles)
-    articles = articles.set_index('News_ID').to_dict()['article']
-
-    doclist = list(articles.values())
-    print(len(doclist), "docs")
-
-    siglist, hashfunctions = generate_signature_matrix(doclist, 100)
-
-    # generate same similarity graph as in sim_analysis.py but using the signatures
-    # this isn't faster but just to show that it does work and the similarity using the signatures
-    # ~ jaccard index
-    buckets = {i / 10: 0 for i in range(0, 10)}
-
-    for i in range(len(siglist)):
-        for j in range(len(siglist)):
-            if i < j:
-                jaccard_sim = signature_similarity(siglist[i], siglist[j])
-                buckets[min(jaccard_sim // 0.1 * 0.1, 0.9)] += 1
-
-    lists = buckets.items()
-    x, y = zip(*lists)
-    # y = [math.log(value) if value != 0 else 0 for value in y]
-    x_pos = [i for i, _ in enumerate(x)]
-    plt.bar(x_pos, y)
-    plt.xticks(x_pos, x)
-    plt.yscale("log")
-    plt.show()
 
 
 if __name__ == "__main__":

@@ -11,8 +11,11 @@ from processing import to_shingles
 from signature import (Linconhash, generate_signature_matrix, load_hash,
                        shingles_to_signature)
 
-
+# Class which takes care of creating an index and allows to search given a query
+# or to find all near-duplicate pairs
 class LSH():
+    # Constructor: a filename of a previously created index may be passed to load it
+    # if no filename is passed, an empty index is created
     def __init__(self, filename=None) -> None:
         self.docs = []
         self.index = None
@@ -24,6 +27,9 @@ class LSH():
         if filename:
             self.load_index(filename)
 
+    # Loads a previously created index
+    # Parameters:
+    # - filename        name of a previously created index file
     def load_index(self, filename):
         with open('./data/%s' % filename, 'r') as index_file:
             index_dict = json.load(index_file)
@@ -34,6 +40,9 @@ class LSH():
             self.hashfunctions = [load_hash(hashfunc)
                                   for hashfunc in index_dict['hashfunctions']]
 
+    # Stores the created index into a JSON file
+    # Parameters:
+    # - filename        name of the index file to be created
     def store_index(self, filename):
         with open('./data/%s' % filename, 'w') as output:
             index_dict = {
@@ -45,8 +54,14 @@ class LSH():
             }
             json.dump(index_dict, output)
 
-    # n: length of signatures, r: minhashes per band
-    def create_index(self, filename, n, r):
+    # Creates an index of a collection given a csv file containing the documents
+    # Parameters:
+    # - filename        name of the csv file containing the documents
+    # - n               length of each signature
+    # - r               minhashes per band
+    # - hashtype        either "Xorhash" or "Linconhash" or "MD5hash", determines the Minhash algorithm. default: Xorhash
+    # n must be a multiple of r.
+    def create_index(self, filename, n, r, hashtype="Xorhash"):
         assert n % r == 0
         articles = pd.read_csv('./data/%s' % filename)
         articles['article'] = articles['article'].apply(self._filter)
@@ -54,18 +69,29 @@ class LSH():
         self.docs = doclist
         print(len(doclist), "docs")
 
-        siglist, self.hashfunctions = generate_signature_matrix(doclist, n)
+        siglist, self.hashfunctions = generate_signature_matrix(doclist, n, hashtype)
         self.r = r
         self.n = n
         self.index = self.index_gen(siglist)
 
-    # compute (s1, p1, s2, p)-sensitivity of the index, given s1 and s2
+    # Compute (s1, p1, s2, p2)-sensitivity of the index, given s1 and s2
+    # Parameters:
+    # - s1              lower bound selectivity of tolerance zone
+    # - s2              upper bound selectivity of tolerance zone
+    # Returns:
+    # - a (s1, p1, s2, p2) tuple
     def compute_sensitivity(self, s1, s2):
         if self.index is None:
             print('An index must be created/loaded before computing sensitivity.')
             return None
         return pow(1-pow(s1, self.r), self.n//self.r), 1-pow(1-pow(s2, self.r), self.n//self.r)
 
+    # Find documents with a similarity to the given query larger than sim
+    # Parameters:
+    # - query           input query for which near-duplicates should be searched
+    # - sim             minimum similarity value
+    # Returns:
+    # - a list of document IDs that have a Jaccard index to the query larger than the given similarity
     def query(self, query, sim):
         results = []
         if self.index is None:
@@ -73,7 +99,6 @@ class LSH():
             return results
         shingles = self._filter(query)
         signature = shingles_to_signature(shingles, self.hashfunctions)
-        #candidates = {candidate for i in range(0, len(signature), self.r) for candidate in self.index[self.hash_band(signature, i)]}
 
         # candidates = union of candidates per band
         candidates = set()
@@ -91,12 +116,25 @@ class LSH():
 
         return results
 
+    # Hash a band of a signature: i denotes the starting index of the band
+    # Parameters:
+    # - sig             the full signature
+    # - i               starting index of the band
+    # Returns:
+    # - an MD5 hash of this band as a 32-character hexadecimal string
     def hash_band(self, sig, i):
         m = md5()
         for value in tuple(sig[i:i+self.r]):
             m.update(value.to_bytes(8, 'big', signed=False))
         return m.hexdigest()
 
+    # Creates an index with populated buckets given the signature matrix
+    # Parameters:
+    # - siglist         list of columns in the signature matrix
+    # Returns:
+    # - the generated buckets as a list of dictionaries, where the index into
+    #   the first list is the band number, and the key into the dictionary is
+    #   the hash of the band. the buckets are a list
     def index_gen(self, siglist):
         index = [defaultdict(list) for _ in range(self.n // self.r)]
         doc_id = 0
@@ -106,6 +144,12 @@ class LSH():
             doc_id += 1
         return index
 
+    # Returns all near-duplicate pairs with a similarity above the given threshold
+    # This function also writes the document IDs into a file result.csv
+    # Parameters:
+    # - treshold        minimum similarity for near-duplicates
+    # Returns:
+    # - list of all candidate pairs and the Jaccard index [((doc1, doc2), sim), ...]
     def get_all_similar_pairs(self, treshold):
         # 1) loop over all buckets & find pairs (i, j) with i < j (so we don't do (i, j) and (j, i))
         candidates = set()
