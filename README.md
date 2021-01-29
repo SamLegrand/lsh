@@ -16,6 +16,6 @@ usersettings = {
 
 ## Obtaining the results
 
-The [results](./results.csv) can be computed by running the `lsh.py` file. 
+The [results](./result.csv) can be computed by running the `lsh.py` file. 
 
 The s-curve plots can be obtained by executing `sim_analysis.py`. To compute the performance, specificity, sensitivity and precision metrics for the plagiarism detection, the `lsh_analysis.py` file can be run.
