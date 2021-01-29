@@ -135,7 +135,7 @@ def example_graph():
     articles = articles.set_index('News_ID').to_dict()['article']
 
     doclist = list(articles.values())
-    print(len(doclist), "docs")
+    # print(len(doclist), "docs")
 
     siglist, hashfunctions = generate_signature_matrix(doclist, 100)
 
