@@ -1,8 +1,10 @@
 # IR assignment 3: Plagiarism detection system
 
+The report can be found [here](./report.pdf).
+
 ## LSH features
 ### Index creation
-The LSH class can compute a LSH index from a given csv document. We can customize the signature set size `M` and amount of rows in each band `r` values. We can also modify the hash function being used for the minhashing operation. This pre-processes the documents according to what is specified in the report.
+The LSH class can compute a LSH index from a given csv document. We can customize the signature set size `M` and amount of rows in each band `r`. We can also modify the hash function being used for the minhashing operation. This pre-processes the documents according to what is specified in the report.
 
 ### Storing/loading index
 The LSH class can store the computed index to a json file, this can be helpful for big datasets where computing the index takes a long time. The index can of course be loaded again from the json file. 
