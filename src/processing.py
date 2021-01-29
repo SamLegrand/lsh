@@ -35,7 +35,7 @@ def longcrc(shingle):
     return lower | (upper << 32)
 
 
-# turns a document into a set of hashed shingles
+# turns a document into a set of hashed shingles (different pre-processing filters possible, length of shingles adaptable by providing k)
 def to_shingles(doc, k=3, filter_punctuation=False, filter_stopwords=False, remove_capitalization=False, stopword_start=False):
     assert (not (filter_stopwords and stopword_start))
     shingles = set()
@@ -50,6 +50,7 @@ def to_shingles(doc, k=3, filter_punctuation=False, filter_stopwords=False, remo
 
 
 if __name__ == "__main__":
+    # test for pre-processing filters
     teststring = "ThiS IS A test StR.Ing,, 5589.48q,"
     print(pre_processing(teststring, punctuation=True,
                          stopwords=True, capitalization=True))

@@ -5,11 +5,13 @@ from functools import partial
 import matplotlib.pyplot as plt
 import time
 
-
+# computes probability of sharing a bucket for a given similarity, based on a given signature length M and number of rows per band r
+# number of bands b is derived from the number of rows per band (M//r)
 def compute_sensitivity(s2, M, r):
     return 1-pow(1-pow(s2, r), M//r)
 
-
+# plots Jaccard similarity distribution, given a dictionarity of buckets/bins (with counts)
+# optionally plots a set of S-curves on top of the distribution
 def plot_jaccard_distribution(docs, suffix, plot_sensitivity=False):
     docs = docs.to_dict()['article']
     buckets = {i/10: 0 for i in range(0, 10)}
@@ -23,10 +25,11 @@ def plot_jaccard_distribution(docs, suffix, plot_sensitivity=False):
     x_pos = [i for i, _ in enumerate(x)]
     rects = plt.bar(x_pos, y, align='edge', width=1)
     for rect in rects:
+        # add amount in bucket as a label of the bar
         height = rect.get_height()
         plt.annotate('{}'.format(height),
                     xy=(rect.get_x() + rect.get_width() / 2, height),
-                    xytext=(0, 3),  # 3 points vertical offset
+                    xytext=(0, 3),
                     textcoords="offset points",
                     ha='center', va='bottom')
     plt.yscale("log")
@@ -34,6 +37,7 @@ def plot_jaccard_distribution(docs, suffix, plot_sensitivity=False):
     plt.xlabel('Similarity between pairs')
 
     if plot_sensitivity:
+        # plot S-curve on top of similarity distribution for different parameter combinations
         _s = [i/1000 for i in range(0, 1000, 1)]
         colors = ['c', 'm', 'y', 'g']
         axes2 = plt.twinx()
