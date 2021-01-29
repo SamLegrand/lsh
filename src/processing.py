@@ -1,6 +1,6 @@
-import binascii
 import re
 from types import prepare_class
+from hashlib import md5
 
 # List of stopwords comes from the "nltk" package
 STOPWORDS = ["ourselves", "hers", "between", "yourself", "but", "again", "there", "about", "once", "during", "out", "very", "having", "with", "they", "own", "an", "be", "some", "for", "do", "its", "yours", "such", "into", "of", "most", "itself", "other", "off", "is", "s", "am", "or", "who", "as", "from", "him", "each", "the", "themselves", "until", "below", "are", "we", "these", "your", "his", "through", "don", "nor", "me", "were", "her", "more", "himself", "this", "down", "should", "our", "their", "while",
@@ -25,14 +25,12 @@ def pre_processing(doc: str, **kwargs) -> str:
     return doc
 
 
-# combine two CRC32s to create a 64-bit result (no built-in CRC64 but this should suffice)
-def longcrc(shingle):
+# hash function we use to hash shingles: simply take 64 bits of the MD5 (similar to the MD5Hash in signature.py)
+def shinglemd5(shingle):
     bytestr = str.encode(" ".join(shingle))
-    shingle.reverse()
-    bytestr2 = str.encode(" ".join(shingle))
-    lower = binascii.crc32(bytestr) % (1 << 32)
-    upper = binascii.crc32(bytestr2) % (1 << 32)
-    return lower | (upper << 32)
+    m = md5()
+    m.update(bytestr)
+    return int(m.hexdigest()[0:16], 16)
 
 
 # turns a document into a set of hashed shingles (different pre-processing filters possible, length of shingles adaptable by providing k)
@@ -45,7 +43,7 @@ def to_shingles(doc, k=3, filter_punctuation=False, filter_stopwords=False, remo
     for i in range(0, len(doc)-k+1):
         # shingles.add(hash(tuple(doc[i:i+k])))
         if not stopword_start or doc[i] in STOPWORDS:
-            shingles.add(longcrc(doc[i:i+k]))
+            shingles.add(shinglemd5(doc[i:i+k]))
     return shingles
 
 
