@@ -181,6 +181,7 @@ class LSH():
 
         # write similar pairs to output csv
         results_csv = pd.DataFrame({'doc_id1': doc_ids1, 'doc_id2': doc_ids2})
+        results_csv.sort_values(["doc_id1", "doc_id2"], inplace=True)
         results_csv.to_csv('result.csv', index=False)
 
         return results
@@ -190,7 +191,7 @@ if __name__ == "__main__":
     lsh = LSH()
 
     t = time.time()
-    lsh.create_index('news_articles_large.csv', 100, 5)
+    lsh.create_index('news_articles_large.csv', 100, 5, "Xorhash")
     print("Creating index took", time.time() - t, "sec")
     s1 = 0.3
     s2 = 0.8
