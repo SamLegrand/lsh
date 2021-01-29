@@ -90,9 +90,10 @@ class LSH():
     # Parameters:
     # - query           input query for which near-duplicates should be searched
     # - sim             minimum similarity value
+    # - info            determines whether to return the number of candidates (to be able to compute precision)
     # Returns:
     # - a list of document IDs that have a Jaccard index to the query larger than the given similarity
-    def query(self, query, sim):
+    def query(self, query, sim, info=False):
         results = []
         if self.index is None:
             print('An index must be created/loaded before querying.')
@@ -116,6 +117,8 @@ class LSH():
             if compute_jaccard(shingles, self.docs[candidate]) > sim:
                 results.append(candidate)
 
+        if info:
+            return len(results), len(candidates)
         return results
 
     # Hash a band of a signature: i denotes the starting index of the band
