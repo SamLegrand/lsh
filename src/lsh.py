@@ -60,7 +60,7 @@ class LSH():
     # - M               length of each signature
     # - r               minhashes per band
     # - hashtype        either "Xorhash" or "Linconhash" or "MD5hash", determines the Minhash algorithm. default: Xorhash
-    # n must be a multiple of r.
+    # M must be a multiple of r.
     def create_index(self, filename, M, r, hashtype="Xorhash"):
         # assert M % r == 0
         articles = pd.read_csv('./data/%s' % filename)
