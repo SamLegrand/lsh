@@ -21,11 +21,11 @@ The following libraries, which can be found in [requirements.txt](./requirements
 * matplotlib
 * pandas
 
-### Creating configuration file
-To be able to run the code, a file called `usersettings.py` will have to be created inside the [src](./src) folder. This file dictates the amount of threads the system can use, the content should be in following format:
+### Modyifing configuration file
+Some functionalities make use of the multiprocessing module. To be able to run the code, a file called `usersettings.py` is present inside the [src](./src) folder, which dictates the amount of threads the system can use:
 ```
 usersettings = {
-    "threads": 8    # change this to change the number of CPU threads used in places that can utilize multiple threads
+    "threads": 4    # change this to change the number of CPU threads used in places that can utilize multiple threads
 }
 ```
 
